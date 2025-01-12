@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Dashboard</title>
+    <link rel="stylesheet" href="../static/css/admin_dashboard.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h2>Admin Dashboard</h2>
+      <p>
+        Welcome, {{ current_user.UserName }}! You are logged in as an Admin.
+      </p>
+
+      <!-- Logout Button -->
+      <form method="POST" action="{{ url_for('auth.logout') }}">
+        <button type="submit" class="btn btn-secondary">Logout</button>
+      </form>
+
+      <!-- Display error message if any -->
+      {% if error_message %}
+      <div class="alert alert-danger">{{ error_message }}</div>
+      {% endif %}
+
+      <!-- User Table -->
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>User ID</th>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Logged In Time</th>
+            <th>Logged Out Time</th>
+            <th>Approved</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.UserID }}</td>
+            <td>{{ user.UserName }}</td>
+            <td>{{ user.Email }}</td>
+            <td>{{ user.Role }}</td>
+            {% if user == current_user %}
+            <td>
+              {{ user.login_time.strftime('%Y-%m-%d %H:%M:%S') if user.login_time  else 'N/A' }}
+            </td>
+            <td>
+              {{ current_user.logout_time.strftime('%Y-%m-%d %H:%M:%S') if not
+              user.is_authenticated and user.logout_time else 'N/A' }}
+            </td>
+
+            {% else %}
+            <td>{{ user.login_time.strftime('%Y-%m-%d %H:%M:%S')  if user.login_time else 'N/A' }}</td>
+            <td>{{ user.logout_time.strftime('%Y-%m-%d %H:%M:%S')  if user.logout_time else 'N/A' }}</td>
+            {% endif %}
+            <td>
+              <form
+                method="POST"
+                action="{{ url_for('auth.update_approval', user_id=user.UserID) }}"
+              >
+                <input type="checkbox" name="approved" {{ 'checked' if
+                user.Approved else '' }} onchange="this.form.submit()">
+              </form>
+            </td>
+
+            <td>
+              <form
+                method="POST"
+                action="{{ url_for('auth.delete_user', user_id=user.UserID) }}"
+              >
+                <button type="submit" class="btn btn-danger">Delete</button>
+              </form>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </body>
+</html>
